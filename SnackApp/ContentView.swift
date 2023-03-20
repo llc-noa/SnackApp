@@ -8,14 +8,40 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var snackDataList = SnackData()
+    @State var inputText = ""
+    @State var showSafari = false
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            TextField("キーワード",text: $inputText, prompt: Text("キーワードを入力してください"))
+                .onSubmit {
+                    snackDataList.getSnack(keyword: inputText)
+                }
+                .submitLabel(.search)
+                .padding()
+            
+            List(snackDataList.snackList){ snack in
+                Button {
+                    snackDataList.snackLink = snack.url
+                    showSafari.toggle()
+                } label: {
+                    HStack {
+                        AsyncImage(url: snack.image){ image in
+                            image.resizable()
+                                .scaledToFit()
+                                .frame(height:40)
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        Text(snack.name)
+                    }
+                }
+            }
+            .sheet(isPresented: $showSafari, content: {
+                SafariView(url: snackDataList.snackLink!)
+                    .ignoresSafeArea(edges: [.bottom])
+            })
         }
-        .padding()
     }
 }
 
